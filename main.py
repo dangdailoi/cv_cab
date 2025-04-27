@@ -1,4 +1,3 @@
-import os
 from fastapi import FastAPI, File, UploadFile
 import torch
 import cv2
@@ -7,8 +6,7 @@ from PIL import Image
 import io
 from io import BytesIO
 from torchvision import transforms
-from fastapi.responses import StreamingResponse, JSONResponse
-import uvicorn
+from fastapi.responses import StreamingResponse
 
 # Khởi tạo FastAPI app
 app = FastAPI()
@@ -32,7 +30,6 @@ transform = transforms.Compose([
 # Labels
 fault_labels = {0: 'broken strand', 1: 'welded strand', 2: 'bent strand', 3: 'long scratch', 4: 'crushed', 5: 'spaced strand', 6: 'deposit'}
 severity_labels = {0: 'light', 1: 'deep', 2: 'important', 3: 'partial', 4: 'complete', 5: 'extracted', 6: 'superficial'}
-
 # Hàm xử lý ảnh
 def process_image(image_bytes):
     # Chuyển đổi byte ảnh thành ảnh OpenCV
@@ -50,7 +47,7 @@ def process_image(image_bytes):
         x1, y1, x2, y2 = map(int, box.xyxy[0])
         cls_id = int(box.cls[0])
         conf = float(box.conf[0])
-        if conf < 0.3:
+        if conf < 0.01:
             continue
         # Crop region
         crop = img_rgb[y1:y2, x1:x2]
@@ -94,15 +91,5 @@ async def process_image_endpoint(file: UploadFile = File(...)):
     # Xử lý ảnh
     annotated_img, output_info = process_image(image_bytes)
 
-    # Trả ảnh đã được đánh dấu và thông tin dưới dạng JSON
-    return JSONResponse(content={"image": annotated_img, "info": output_info})
-
-# Endpoint gốc để kiểm tra
-@app.get("/")
-async def read_root():
-    return {"message": "Welcome to the FastAPI application!"}
-
-# Cấu hình để chạy trên cổng mà Render cung cấp
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))  # Lấy cổng từ biến môi trường
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    # Trả ảnh đã được đánh dấu
+    return StreamingResponse(BytesIO(annotated_img), media_type="image/jpeg", headers={"X-Info": str(output_info)})

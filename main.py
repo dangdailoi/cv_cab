@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, File, UploadFile
 import torch
 import cv2
@@ -7,6 +8,7 @@ import io
 from io import BytesIO
 from torchvision import transforms
 from fastapi.responses import StreamingResponse
+import uvicorn
 
 # Khởi tạo FastAPI app
 app = FastAPI()
@@ -30,6 +32,7 @@ transform = transforms.Compose([
 # Labels
 fault_labels = {0: 'broken strand', 1: 'welded strand', 2: 'bent strand', 3: 'long scratch', 4: 'crushed', 5: 'spaced strand', 6: 'deposit'}
 severity_labels = {0: 'light', 1: 'deep', 2: 'important', 3: 'partial', 4: 'complete', 5: 'extracted', 6: 'superficial'}
+
 # Hàm xử lý ảnh
 def process_image(image_bytes):
     # Chuyển đổi byte ảnh thành ảnh OpenCV
@@ -93,3 +96,8 @@ async def process_image_endpoint(file: UploadFile = File(...)):
 
     # Trả ảnh đã được đánh dấu
     return StreamingResponse(BytesIO(annotated_img), media_type="image/jpeg", headers={"X-Info": str(output_info)})
+
+# Cấu hình để chạy trên cổng mà Render cung cấp
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))  # Lấy cổng từ biến môi trường
+    uvicorn.run(app, host="0.0.0.0", port=port)

@@ -1,17 +1,23 @@
-# Dùng Python image chính thức
+# Dùng base image Python
 FROM python:3.10-slim
 
-# Tạo thư mục /app bên trong container
+# Cài thư viện hệ thống cần thiết
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Tạo thư mục làm việc
 WORKDIR /app
 
-# Copy toàn bộ mã nguồn (trong thư mục hiện tại) vào thư mục /app
+# Copy mã nguồn vào Docker image
 COPY . /app
 
-# Cài đặt các thư viện yêu cầu
+# Cài đặt Python packages
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Mở port 8000
 EXPOSE 8000
 
-# Chạy FastAPI app với uvicorn
+# Lệnh để chạy app
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

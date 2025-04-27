@@ -1,8 +1,10 @@
 fastapi
 uvicorn
 torch
+torchvision
+timm
+ultralytics
 opencv-python
 pillow
-torchvision
-ultralytics
-timm
+numpy
+python-multipart

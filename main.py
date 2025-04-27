@@ -7,7 +7,7 @@ from PIL import Image
 import io
 from io import BytesIO
 from torchvision import transforms
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 import uvicorn
 
 # Khởi tạo FastAPI app
@@ -94,8 +94,13 @@ async def process_image_endpoint(file: UploadFile = File(...)):
     # Xử lý ảnh
     annotated_img, output_info = process_image(image_bytes)
 
-    # Trả ảnh đã được đánh dấu
-    return StreamingResponse(BytesIO(annotated_img), media_type="image/jpeg", headers={"X-Info": str(output_info)})
+    # Trả ảnh đã được đánh dấu và thông tin dưới dạng JSON
+    return JSONResponse(content={"image": annotated_img, "info": output_info})
+
+# Endpoint gốc để kiểm tra
+@app.get("/")
+async def read_root():
+    return {"message": "Welcome to the FastAPI application!"}
 
 # Cấu hình để chạy trên cổng mà Render cung cấp
 if __name__ == "__main__":

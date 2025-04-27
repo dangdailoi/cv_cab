@@ -11,11 +11,11 @@ from fastapi.responses import StreamingResponse
 # Khởi tạo FastAPI app
 app = FastAPI()
 
-# Load YOLOv5 model (Giả sử bạn đã tải mô hình YOLOv5)
+# Load YOLOv5 model
 from ultralytics import YOLO
 yolo_model = YOLO('model/best.pt')
 
-# Load EfficientNet-B0 model (Giả sử bạn đã tải mô hình EfficientNet-B0)
+# Load EfficientNet-B0 model
 efficientnet_model = torch.load('model/efficientnet_b0.pth', map_location='cpu')
 efficientnet_model.eval()
 
@@ -28,14 +28,8 @@ transform = transforms.Compose([
 ])
 
 # Labels
-fault_labels = {0: 'broken strand', 1: 'welded strand', 2: 'bent strand', 3: 'long scratch', 4: 'crushed', 5: 'spaced strand', 6: 'deposit'}  # Nhãn lỗi YOLO
-severity_labels = {0: 'light',
-1: 'deep',
-2: 'important',
-3: 'partial',
-4: 'complete',
-5: 'extracted',
-6: 'superficial'}
+fault_labels = {0: 'broken strand', 1: 'welded strand', 2: 'bent strand', 3: 'long scratch', 4: 'crushed', 5: 'spaced strand', 6: 'deposit'}
+severity_labels = {0: 'light', 1: 'deep', 2: 'important', 3: 'partial', 4: 'complete', 5: 'extracted', 6: 'superficial'}
 # Hàm xử lý ảnh
 def process_image(image_bytes):
     # Chuyển đổi byte ảnh thành ảnh OpenCV
@@ -99,6 +93,3 @@ async def process_image_endpoint(file: UploadFile = File(...)):
 
     # Trả ảnh đã được đánh dấu
     return StreamingResponse(BytesIO(annotated_img), media_type="image/jpeg", headers={"X-Info": str(output_info)})
-
-# Chạy server với Uvicorn (thực hiện từ terminal)
-# uvicorn script_name:app --reload
